@@ -4,6 +4,10 @@ import { AppService } from './app.service';
 import { ExerciseModule } from './exercise/exercise.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exercise } from './exercise/exercise.entity';
+import { MusicSheet } from './music-sheet/music-sheet.entity';
+import { MusicSheetModule } from './music-sheet/music-sheet.module';
+import { Answer } from './answer/answer.entity';
+import { AnswerModule } from './answer/answer.module';
 
 @Module({
   imports: [
@@ -14,10 +18,12 @@ import { Exercise } from './exercise/exercise.entity';
       username: 'postgres',
       password: 'bonjour',
       database: 'cyhi',
-      entities: [Exercise],
+      entities: [Exercise, MusicSheet, Answer],
       synchronize: true,
     }),
     ExerciseModule,
+    MusicSheetModule,
+    AnswerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

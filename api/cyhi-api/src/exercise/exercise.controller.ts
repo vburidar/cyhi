@@ -11,13 +11,13 @@ export class ExerciseController {
     }
 
     @Get('/')
-    create(): string {
-        return this.exerciseService.getRandomMusicSheet();
+    async createRandom() {
+        return await this.exerciseService.createRandom(2);
     }
 
-    @Post('/setup')
-    generate():string{
-        return this.exerciseService.setupDatabase();
+    @Get('/:id/:start/:nbMeasure')
+    async createTest(@Param() params) {
+        return await this.exerciseService.create(parseInt(params.id), parseInt(params.start), parseInt(params.nbMeasure));
     }
     
 }
