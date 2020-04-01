@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exercise } from 'src/exercise/exercise.entity';
 import { MusicSheetService } from 'src/music-sheet/music-sheet.service';
-import buildMidi from 'src/test';
+import buildMidi from 'src/MidiBuilder';
 
 
 @Injectable()
