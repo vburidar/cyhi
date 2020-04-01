@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exercise } from 'src/exercise/exercise.entity';
 import { MusicSheetService } from 'src/music-sheet/music-sheet.service';
+import buildMidi from 'src/test';
 
 
 @Injectable()
@@ -23,11 +24,9 @@ export class ExerciseService {
             nbMeasure,
             clef: [],
         };
-        console.log('NEW EXERCISE');
         console.log(json.Part[0]);
         json.Part[0].Staff.map((staff, idStaff) => {
             if (staff.defaultEvent){
-                console.log('CLEF =', staff.defaultEvent)
                 param.clef[idStaff] =  staff.defaultEvent[0];
             } else {
                 param.clef[idStaff] = 'G';
@@ -36,20 +35,13 @@ export class ExerciseService {
         if (json.Style[0].keySigNaturals){
             param.keySig = [{accidental: json.Style[0].keySigNaturals}];
         }
-        json.Staff.map((staff, idStaff) => {
+        json.Staff.forEach((staff, idStaff) => {
             exercise[idStaff] = [];
-            staff.Measure.map((measure, idMeasure) => {
+            staff.Measure.forEach((measure, idMeasure) => {
                 if (idMeasure >= start && idMeasure < start + nbMeasure) {
                     exercise[idStaff][idMeasure - start] = [];
                 }
-                measure.voice.map((voice, idVoice) => {
-                    if (idMeasure < start){
-                        voice.Event.map((event) =>{
-                            if (event.concertEventType) {
-                                param.clef[idStaff] = event.concertEventType;
-                            }
-                        });
-                    }
+                measure.voice.forEach((voice, idVoice) => {
                     if (voice.KeySig){
                         param.keySig = voice.KeySig[0].accidental;
                     }
@@ -59,9 +51,18 @@ export class ExerciseService {
                     if (idMeasure >= start && idMeasure < start + nbMeasure) {
                         exercise[idStaff][idMeasure - start][idVoice] = voice.Event;
                     }
+                    if (idMeasure >= start){
+                        return; 
+                    }
+                    voice.Event.map((event) =>{
+                        if (event.concertEventType) {
+                            param.clef[idStaff] = event.concertEventType;
+                        }
+                    });
                 });
             });
         })
+        buildMidi({exercise, param})
         console.log(param);
         return ({exercise, param});
     }
@@ -79,7 +80,7 @@ export class ExerciseService {
     }
 
     async create(id:number, start:number, nbMeasure:number){
-        let xml = await this.musicSheetService.get(id)
+        let xml: any = await this.musicSheetService.get(id)
         xml = xml.replace(/Chord|Rest|Clef/g, 'Event');
         let json: any = {};
         parseString(xml, function getResult(err, result) {
