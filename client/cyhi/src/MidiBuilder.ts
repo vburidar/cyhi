@@ -11,11 +11,14 @@ function getNbTracks(data: any) : number {
 }
 
 function getFromIdTracks(idTracks: number, data:any){
+    console.log('start getFromIdTracks');
     let nbTracks: number = 0;
     let ret: any = {};
     data.exercise.forEach((Staff: any, idStaff: number) => {
         Staff[0].forEach((voice: any, idVoice: number) => {
+            console.log('idTracks', idTracks, 'nbTracks', nbTracks)
             if (idTracks === nbTracks){
+                console.log('FOUND');
                 ret = {idStaff, idVoice};
             }
             nbTracks++;
@@ -146,8 +149,8 @@ export default function buildMidi(data: any) {
         let idEvent: number = 0;
         let lengthTrack: number = 21; //initialized with header length
         let track: string = '00ff5804' + getTimeSignature(data);
-        track += '00ff59020000'; //key signature
-        track += '00ff51030b71b2'; //tempo
+        track += '00ff5902' + '0000'; //key signature
+        track += '00ff5103' + '0b71b2'; //tempo
         let firstEvent = true;
         let event = data.exercise[idStaff][0][idVoice][0];
         while (event) {
@@ -169,6 +172,7 @@ export default function buildMidi(data: any) {
                     currentInterval['raw'] = 1;
                     currentInterval['refined'] = '01';
                     lengthTrack += tmpEvent.length / 2;
+                    console.log('adding chord to track', tmpEvent);
                     track += tmpEvent;
                 } else if (event.durationType) {
                     const restObj = convertRest(event, track, currentInterval, lengthTrack);
@@ -190,9 +194,12 @@ export default function buildMidi(data: any) {
         lengthTrack += 3;
         midiFile += '4d54726b' + getSize(lengthTrack) + track;
     }
+    console.log(midiFile, typeof(midiFile));
     let r = hexToAscii(midiFile);
-    const midi = new Midi(str2ab(r));
-    return (midi);
+    console.log(r);
+    var enc = new TextEncoder();
+    const midi = new Midi(str2ab(r))
+    return midi;
 }
 
 function str2ab(str: string): ArrayBuffer {

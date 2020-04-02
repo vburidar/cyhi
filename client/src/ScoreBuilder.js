@@ -1,15 +1,19 @@
 import Vex from 'vexflow'
 import { convertArmor, getKeySignature } from './PitchConverter';
 
-export default function buildScore(data) {
+export default function buildScore(data, answer, id) {
     let VF = Vex.Flow;
 
-    var div = document.getElementById("Exercise")
+    let svg = document.getElementsByTagName("svg")[0];
+    if (svg) {
+        svg.parentNode.removeChild(svg);
+    }
+    var div = document.getElementById("Exercise");
     var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-    renderer.resize(900, 1000);
+    renderer.resize(900, 300);
     var context = renderer.getContext();
     context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-    parseJson(data, VF, context);
+    parseJson(data, VF, context, answer);
     return(data);
 }
 
@@ -37,21 +41,19 @@ function convertTime(value, dotted){
     }
 }
 
-function parseVoice(voice, param, idStaff, VF) {
+function parseVoice(voice, param, idStaff, VF, answer) {
     const notes = [];
     const tabAccidentals = {
         flat : [],
         sharp : [],
     };
-    console.log('new Voice');
     voice.forEach((event, idEvent) => {
-        parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals);
+        parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals, answer);
     })
     return (notes);
 }
 
-function parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals) {
-    console.log(event.durationType, convertTime(event.durationType));
+function parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals, answer) {
     if (event.appoggiatura || event.acciaccatura){
         return;
     }
@@ -74,19 +76,39 @@ function parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals) {
             notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
         }
     })
+    } else if (event.secret && answer !== 0){
+        console.log('ANSWER=', answer);
+        const chord = [];
+        let time = convertTime(event.durationType, event.dots);
+        chord.push(convertArmor(parseInt(answer), parseInt(param.keySig[0]), [], tabAccidentals));
+        notes.push(new VF.StaveNote({clef: convertClef(param.clef[idStaff]), keys: chord, duration: time }));
+        notes[notes.length - 1].setStyle({fillStyle: "red", strokeStyle: "red"});
+        chord.forEach((note, idNote) => {
+        if (event.dots){
+            notes[notes.length - 1].addDotToAll();
+        }
+        if (note.match(/.#\//)){
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("#"));
+        } else if (note.match(/.b\//)) {
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
+        } else if (note.match(/.n\//)) {
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
+        }
+    })
     } else if (event.durationType){
-        console.log(event.durationType)
         if (event.durationType[0] === 'measure') {
-            console.log('CUSTOM REST', param.timeSig.sigN, param.timeSig.sigD);
             const customDuration = new Vex.Flow.Fraction(param.timeSig.sigN, param.timeSig.sigD);
             notes.push(new VF.StaveNote({clef: "treble", keys: ["b/4"], duration: '1r', duration_override: customDuration, align_center: true }));
         } else {
-        notes.push(new VF.StaveNote({clef: "treble", keys: ["b/4"], duration: (convertTime(event.durationType) + 'r') }));
+            notes.push(new VF.StaveNote({clef: "treble", keys: ["b/4"], duration: (convertTime(event.durationType) + 'r') }));
+            if(event.secret){
+                notes[notes.length - 1].setStyle({fillStyle: "red", strokeStyle: "red"});
+            }
         }
     }
 }
 
-function parseJson(data, VF, context) {
+function parseJson(data, VF, context, answer) {
     const tabStaff =[]; //to store all the staves created with Vexflow
     const voiceToStaff = []; //to store on which staff each voice is supposed to be drawn
     let tabVoice = []; //to store all the voices (notes / rest / change of Clef)
@@ -111,7 +133,7 @@ function parseJson(data, VF, context) {
                 if (!voiceToStaff[idMeasure]){
                     voiceToStaff[idMeasure] = [];
                 }
-                tabVoice[idMeasure].push(parseVoice(voice, data.param, idStaff, VF));
+                tabVoice[idMeasure].push(parseVoice(voice, data.param, idStaff, VF, answer));
                 voiceToStaff[idMeasure][tabVoice[idMeasure].length - 1] = tabStaff.length - 1;
             })
         });

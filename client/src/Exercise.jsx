@@ -1,10 +1,27 @@
-import React from 'react'
+import React from 'react';
+import Tone from 'tone';
+import {useState} from 'react'
 import ApiRequester from './Requester';
 import buildScore from './ScoreBuilder';
-import buildMidi from './MidiBuilder.ts';
 import { useEffect } from 'react';
+import Button from '@material-ui/core/Button';
+import { isAccidental } from './PitchConverter';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography'
+
+const useStyles = makeStyles((theme) => ({
+    button: {
+      margin: theme.spacing(1),
+    },
+  }));
 
 export default function Exercise(){
+    const [midi, setMidi] = useState(null);
+    const [answer, setAnswer] = useState(0);
+    const [done, setDone] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [data, setData] = useState({});
+    const classes = useStyles();
 
     useEffect(() => {
         let param = window.location.pathname.split('/');
@@ -16,12 +33,104 @@ export default function Exercise(){
         const apiRequester = new ApiRequester('GET', url, {})
         apiRequester.call()
         .then(response => response.json())
-        .then(data => buildScore(data))
-        .then(data => buildMidi(data))
+        .then(data => {
+            buildScore(data, 0)
+            setMidi(data.midi);
+            setData(data);
+        })
         .catch(e => console.log(e));
     }, []);
 
+    const playMidi = () => {
+        const synths =[];
+        const now = Tone.now() + 0.5
+				midi.tracks.forEach(track => {
+					const synth = new Tone.PolySynth(10, Tone.Synth, {
+						envelope : {
+							attack : 0.02,
+							decay : 0.1,
+							sustain : 0.3,
+							release : 1
+						}
+					}).toMaster()
+					synths.push(synth)
+					track.notes.forEach(note => {
+						synth.triggerAttackRelease(note.name, note.duration, note.time + now, note.velocity)
+					})
+				})
+    }
+
+    const sendAnswer = () => {
+        const apiRequester = new ApiRequester('GET', '/exercise/answer', {})
+        apiRequester.addParams({answer: answer, exerciseId: data.id});
+        apiRequester.call()
+        .then(response => response.json())
+        .then(data => {
+            setDone(true);
+            console.log(data);
+            console.log('answer=', data.pitch, 'you guessed', answer);
+            setSuccess(data.pitch === answer);
+        });
+    }
+
+    const up = () => {
+        let tmpAnswer = answer;
+        if (answer === 0){
+            setAnswer(64)
+            buildScore(data, 64);
+        } else {
+            tmpAnswer += 1;
+            while (isAccidental(tmpAnswer, parseInt(data.param.keySig[0]))){
+                console.log('here');
+                tmpAnswer += 1;
+            }
+            setAnswer(tmpAnswer);
+            console.log('before build score')
+            buildScore(data, tmpAnswer);
+        }
+    }
+
+    const down = () => {
+        let tmpAnswer = answer;
+        if (answer === 0){
+            setAnswer(64)
+            buildScore(data, 64);
+        } else {
+            tmpAnswer -= 1;
+            while (isAccidental(tmpAnswer, parseInt(data.param.keySig[0]))){
+                console.log('here');
+                tmpAnswer -= 1;
+            }
+            setAnswer(tmpAnswer);
+            console.log('before build score')
+            buildScore(data, tmpAnswer);
+        }
+    }
+
+    const sharp =() => {
+
+    }
+
+    const flat =() => {
+
+    }
+
     return(
-        <div id="Exercise"></div>
+        <div>
+            <div id="Exercise"></div>
+            {!done && <div id="control">
+            <Button className={classes.button} onClick={playMidi} variant="contained">Play Music</Button>
+            <Button className={classes.button} onClick={up} variant="contained">Up</Button>
+            <Button className={classes.button} onClick={down} variant="contained">Down</Button>
+            <Button className={classes.button} onClick={sharp} variant="contained">Sharp</Button>
+            <Button className={classes.button} onClick={flat} variant="contained">Flat</Button>
+            </div>}
+            <div id="validate">
+            {answer !== 0 && !done && <Button onClick={sendAnswer} variant="contained" color="primary">Validate</Button>}
+            {done && success && <Typography>Congratulation!</Typography>}
+            {done && !success && <Typography>Try Again</Typography>}
+            {done && <Button className={classes.button} onClick={() =>window.location.reload(false)}>Next Exercise</Button>}
+            </div>
+        </div>
     )
 }
