@@ -1,5 +1,4 @@
 import { Midi } from '@tonejs/midi'
-import * as fs from 'fs'
 
 function getNbTracks(data: any) : number {
     let nbTracks = 0;
@@ -169,7 +168,6 @@ export default function buildMidi(data: any) {
                     currentInterval['raw'] = 1;
                     currentInterval['refined'] = '01';
                     lengthTrack += tmpEvent.length / 2;
-                    console.log('adding chord to track', tmpEvent);
                     track += tmpEvent;
                 } else if (event.durationType) {
                     const restObj = convertRest(event, track, currentInterval, lengthTrack);
@@ -191,13 +189,9 @@ export default function buildMidi(data: any) {
         lengthTrack += 3;
         midiFile += '4d54726b' + getSize(lengthTrack) + track;
     }
-    console.log(midiFile, typeof(midiFile));
     let r = hexToAscii(midiFile);
-    console.log(r);
-    fs.writeFile('test.mid', new Buffer(str2ab(r)),  function (err) {
-        if (err) return console.log(err);
-        console.log('file written');
-      });
+    const midi = new Midi(str2ab(r));
+    return (midi);
 }
 
 function str2ab(str: string): ArrayBuffer {

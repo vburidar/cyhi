@@ -6,10 +6,7 @@ export class Answer{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type=>Exercise, exercise => exercise.answer)
-    exercise: Exercise;
-
     @Column()
-    path: string;
+    pitch: number;
 
 }

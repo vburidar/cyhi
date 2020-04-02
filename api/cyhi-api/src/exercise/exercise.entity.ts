@@ -14,12 +14,8 @@ export class Exercise{
     music_sheet: MusicSheet;
 
     @Column()
-    bar_start: number;
+    barStart: number;
 
     @Column()
     bar_end: number;
-
-    @OneToMany(type => Answer, answer => answer.exercise)
-    answer: Answer[];
-
 }

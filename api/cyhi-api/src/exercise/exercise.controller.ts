@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import {ExerciseService} from './exercise.service';
 
 @Controller('exercise')
@@ -20,4 +20,9 @@ export class ExerciseController {
         return await this.exerciseService.create(parseInt(params.id), parseInt(params.start), parseInt(params.nbMeasure));
     }
     
+    @Get('/answer')
+    async getAnswer(@Query() query) {
+        console.log('request get /answer', query);
+        return await this.exerciseService.getAnswer(query.exerciseId);
+    }
 }
