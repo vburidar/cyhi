@@ -67,8 +67,6 @@ export default function Exercise(){
         .then(response => response.json())
         .then(data => {
             setDone(true);
-            console.log(data);
-            console.log('answer=', data.pitch, 'you guessed', answer);
             setSuccess(data.pitch === answer);
         });
     }
@@ -80,7 +78,11 @@ export default function Exercise(){
             buildScore(data, 64);
         } else {
             tmpAnswer += 1;
-            while (isAccidental(tmpAnswer, parseInt(data.param.keySig[0]))){
+            let armor = parseInt(data.param.keySig[0]);
+            if (isNaN(armor)){
+                armor = 0;
+            }
+            while (isAccidental(tmpAnswer, armor)){
                 console.log('here');
                 tmpAnswer += 1;
             }
@@ -97,7 +99,11 @@ export default function Exercise(){
             buildScore(data, 64);
         } else {
             tmpAnswer -= 1;
-            while (isAccidental(tmpAnswer, parseInt(data.param.keySig[0]))){
+            let armor = parseInt(data.param.keySig[0]);
+            if (isNaN(armor)){
+                armor = 0;
+            }
+            while (isAccidental(tmpAnswer, armor) && tmpAnswer > 0){
                 console.log('here');
                 tmpAnswer -= 1;
             }
