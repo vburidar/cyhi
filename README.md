@@ -5,11 +5,17 @@ CYHI or Can You Hear It? is a demo Website using Vexflow and MIDI format to gene
 
 ## Setup
 git clone
+
 cd api/cyhi-api //Go to api folder
+
 edit seeder.module and App.module with your database connection infos
+
 npm run seed //Setup the database with path of music scores
+
 npm run start
+
 cd ../../client
+
 npm start
 
 You're good to go
