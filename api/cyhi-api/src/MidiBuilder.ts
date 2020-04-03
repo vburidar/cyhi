@@ -70,9 +70,11 @@ function getLengthEvent(note: any): string {
 function convertChord(event: any): string{
     let ret: string ='';
     event.Note.forEach((note: any, idNote: number) => {
+        console.log(note);
         if (idNote === 0){
             ret = parseInt(note.pitch[0]).toString(16);
         } else {
+            console.log('add note to chord');
             ret += '00' + parseInt(note.pitch[0]).toString(16);
         }
         ret += '5f';
@@ -84,6 +86,7 @@ function convertChord(event: any): string{
             ret += '00';
         }
     })
+    console.log(ret);
     return (ret + '01');
 }
 
@@ -99,7 +102,7 @@ function getLengthRest(event: any, currentInterval: any, timeSig: any)
         '32nd' : 63,
     }
     if (event.durationType[0] === 'measure'){
-        ret = timeSig.sigN * (timeSig.sigD / 4) * 8 * 64 - 1;
+        ret = timeSig.sigN * (4 / timeSig.sigD) * 8 * 64 - 1;
     } else {
         ret = dict[event.durationType[0]] + currentInterval['raw'];
     }
