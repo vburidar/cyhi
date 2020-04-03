@@ -25,6 +25,17 @@ function convertClef(value) {
     return (dict[value]);
 }
 
+function getDottedValue(value){
+    const dict = {
+        'whole':'h',
+        'half': 'q',
+        'quarter': '8',
+        'eighth': '16',
+        '16th': '32',
+    }
+   return dict[value];
+}
+
 function convertTime(value, dotted){
     const dict = {
         'whole':'w',
@@ -102,6 +113,9 @@ function parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals, a
             notes.push(new VF.StaveNote({clef: "treble", keys: ["b/4"], duration: (convertTime(event.durationType) + 'r') }));
             if(event.secret){
                 notes[notes.length - 1].setStyle({fillStyle: "red", strokeStyle: "red"});
+                if (event.dots){
+                    notes.push(new VF.StaveNote({clef: "treble", keys: ["b/4"], duration: (getDottedValue(event.durationType) + 'r') }));
+                }
             }
         }
     }
@@ -112,6 +126,7 @@ function parseJson(data, VF, context, answer) {
     const voiceToStaff = []; //to store on which staff each voice is supposed to be drawn
     let tabVoice = []; //to store all the voices (notes / rest / change of Clef)
     //this part is to parse the json file and create the VF objects
+    console.log(getDottedValue('whole'));
     data.exercise.forEach((Staff, idStaff) => {
         Staff.forEach((measure, idMeasure) => {
             if (idMeasure % 2 === 0) {
