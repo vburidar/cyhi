@@ -12,22 +12,38 @@ export class MusicSheetService {
         private musicSheetRepository: Repository<MusicSheet>,
     ) {}
     
-    setupDatabase(): string{
+    async setupDatabase() {
         const _this = this;
+        try {
+            await this.musicSheetRepository.createQueryBuilder()
+            .delete()
+            .from('music_sheet')
+            .where('id > 0')
+            .execute();
+        } catch (e) {
+            throw e;
+        }
         let pathToScoreDir = path.join(__dirname, '..', '..', 'public', 'music-sheet');
         fs.readdir(pathToScoreDir, function (err, files) {
             //handling error
             if (err) {
-                return console.log('Unable to scan directory: ' + err);
+                throw(err)
             } 
             //listing all files using forEach
-            files.forEach(function (file) {
+            files.forEach(async function (file) {
                 let musicSheet = new MusicSheet;
                 musicSheet.path = path.join(pathToScoreDir, file);
-                _this.musicSheetRepository.save(musicSheet);
+                try {
+                    await _this.musicSheetRepository.save(musicSheet);
+                } catch (e){
+                    throw e;
+                }
             });
         });
-        return ('new value added to database');
+    }
+
+    sayhello() {
+        console.log('hello');
     }
 
     async getRandom(): Promise<string>{

@@ -8,6 +8,7 @@ import { MusicSheet } from './music-sheet/music-sheet.entity';
 import { MusicSheetModule } from './music-sheet/music-sheet.module';
 import { Answer } from './answer/answer.entity';
 import { AnswerModule } from './answer/answer.module';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [

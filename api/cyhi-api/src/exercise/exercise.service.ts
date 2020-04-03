@@ -27,7 +27,6 @@ export class ExerciseService {
             clef: [],
         };
         let missingNotePool = [];
-        console.log(json.Part[0]);
         json.Part[0].Staff.map((staff, idStaff) => {
             if (staff.defaultEvent){
                 param.clef[idStaff] =  staff.defaultEvent[0];
@@ -72,7 +71,6 @@ export class ExerciseService {
             });
         })
         const midi = buildMidi({exercise, param})
-        console.log(missingNotePool);
         let missingNoteId = Math.floor(Math.random() * (missingNotePool.length));
         let missingNoteParams = {
             idStaff: missingNotePool[missingNoteId].idStaff,
@@ -82,9 +80,7 @@ export class ExerciseService {
         let missingNote = exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         delete exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
-        console.log(missingNote);
         let insert = await this.answerService.create(missingNote[0].pitch[0])
-        console.log(insert);
         return ({exercise, param, midi, id: insert.id});
     }
     
@@ -115,5 +111,4 @@ export class ExerciseService {
         return (await this.answerService.getAnswer(id));
     }
     
-
 }
