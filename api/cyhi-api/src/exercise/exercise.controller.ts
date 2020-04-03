@@ -5,14 +5,9 @@ import {ExerciseService} from './exercise.service';
 export class ExerciseController {
     constructor(private exerciseService: ExerciseService){}
 
-    @Get(':id/result')
-    findOne(@Param() params): string {
-        return 'this action returns result for the test' + params.id;
-    }
-
     @Get('/')
     async createRandom() {
-        return await this.exerciseService.createRandom(2);
+        return  await this.exerciseService.createRandom(2);;
     }
 
     @Get('/:id/:start/:nbMeasure')

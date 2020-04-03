@@ -11,14 +11,11 @@ function getNbTracks(data: any) : number {
 }
 
 function getFromIdTracks(idTracks: number, data:any){
-    console.log('start getFromIdTracks');
     let nbTracks: number = 0;
     let ret: any = {};
     data.exercise.forEach((Staff: any, idStaff: number) => {
         Staff[0].forEach((voice: any, idVoice: number) => {
-            console.log('idTracks', idTracks, 'nbTracks', nbTracks)
             if (idTracks === nbTracks){
-                console.log('FOUND');
                 ret = {idStaff, idVoice};
             }
             nbTracks++;
@@ -132,12 +129,10 @@ function convertNbTracks(nbTracks : number): string{
 }
 
 export default function buildMidi(data: any) {
-    console.log(data.exercise);
     const nbTracks = getNbTracks(data);
     let midiFile: string = '4d546864000000060001' + convertNbTracks(nbTracks);
     midiFile += getDivision();
     for (let i=0; i <nbTracks; i++){
-        console.log('getFromIdTracks', getFromIdTracks(i, data));
         const idStaff: number = getFromIdTracks(i, data).idStaff;
         const idVoice: number = getFromIdTracks(i, data).idVoice;
         const currentInterval: any =[];

@@ -14,15 +14,12 @@ export class MusicSheetService {
     
     async setupDatabase() {
         const _this = this;
-        try {
-            await this.musicSheetRepository.createQueryBuilder()
-            .delete()
-            .from('music_sheet')
-            .where('id > 0')
-            .execute();
-        } catch (e) {
-            throw e;
-        }
+        //delete all rows in music_sheet
+        await this.musicSheetRepository.createQueryBuilder()
+        .delete()
+        .from('music_sheet')
+        .where('id > 0')
+        .execute();
         let pathToScoreDir = path.join(__dirname, '..', '..', 'public', 'music-sheet');
         fs.readdir(pathToScoreDir, function (err, files) {
             //handling error
@@ -33,31 +30,29 @@ export class MusicSheetService {
             files.forEach(async function (file) {
                 let musicSheet = new MusicSheet;
                 musicSheet.path = path.join(pathToScoreDir, file);
-                try {
-                    await _this.musicSheetRepository.save(musicSheet);
-                } catch (e){
-                    throw e;
-                }
+                await _this.musicSheetRepository.save(musicSheet);
             });
         });
-    }
-
-    sayhello() {
-        console.log('hello');
     }
 
     async getRandom(): Promise<string>{
         let nb = await this.musicSheetRepository.count();
         let randomId = Math.floor(Math.random() * nb);
+        console.log('randomId=', randomId);
         let randomRow = await this.musicSheetRepository.find({
             skip: randomId, //replace with randomId
             take: 1,
         });
+        console.log(randomRow);
         return (fs.readFileSync(randomRow[0].path, "utf8"));
     }
 
     async get(id) : Promise<string>{
-        let row = await this.musicSheetRepository.findOne(id);
-        return (fs.readFileSync(row.path, "utf8"));
+        try {
+            let row = await this.musicSheetRepository.findOne(id);
+            return (fs.readFileSync(row.path, "utf8"));
+        } catch (e) {
+            throw (e);
+        }
     }
 }

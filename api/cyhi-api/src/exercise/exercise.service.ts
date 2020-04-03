@@ -81,6 +81,9 @@ export class ExerciseService {
         delete exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
         let insert = await this.answerService.create(missingNote[0].pitch[0])
+        if (midi === null){
+            return ({exercise: undefined, param: undefined, midi: undefined, id: undefined})
+        }
         return ({exercise, param, midi, id: insert.id});
     }
     
@@ -97,13 +100,18 @@ export class ExerciseService {
     }
 
     async create(id:number, start:number, nbMeasure:number){
-        let xml: any = await this.musicSheetService.get(id)
-        xml = xml.replace(/Chord|Rest|Clef/g, 'Event');
-        let json: any = {};
-        parseString(xml, function getResult(err, result) {
+        try {
+            let xml: any = await this.musicSheetService.get(id);
+            xml = xml.replace(/Chord|Rest|Clef/g, 'Event');
+            let json: any = {};
+            parseString(xml, function getResult(err, result) {
             json = result;
-        })
-        return (this.getExerciseObj(json.museScore.Score[0], start, nbMeasure));
+            });
+            return (this.getExerciseObj(json.museScore.Score[0], start, nbMeasure));
+        } catch (e) {
+            console.log(e);
+            return ({exercise: undefined, param: undefined, midi: undefined, id: undefined});
+        }
     }
 
 
