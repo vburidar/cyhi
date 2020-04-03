@@ -87,8 +87,9 @@ function convertChord(event: any): string{
     return (ret + '01');
 }
 
-function getLengthRest(event: any, currentInterval: any)
+function getLengthRest(event: any, currentInterval: any, timeSig: any)
 {
+    let ret = 0;
     const dict: any = {
         'whole' : 2047,
         'half' : 1023,
@@ -97,16 +98,20 @@ function getLengthRest(event: any, currentInterval: any)
         '16th' : 127,
         '32nd' : 63,
     }
-	let ret = dict[event.durationType[0]] + currentInterval['raw'];
+    if (event.durationType[0] === 'measure'){
+        ret = timeSig.sigN * (timeSig.sigD / 4) * 8 * 64 - 1;
+    } else {
+        ret = dict[event.durationType[0]] + currentInterval['raw'];
+    }
 	currentInterval['raw'] = ret;
 	if (ret > 127)
 		ret = ((ret & 32640) << 1) + 32768 + (ret & 127);
 	return ({length: ret.toString(16), currentInterval: currentInterval['raw']});
 }
 
-function convertRest(event: any, track: any, currentInterval: any, lengthTrack: number)
+function convertRest(event: any, track: any, currentInterval: any, lengthTrack: number, timeSig: any)
 {
-    const restObj = getLengthRest(event, currentInterval);
+    const restObj = getLengthRest(event, currentInterval, timeSig);
     const ret = restObj.length;
     currentInterval['raw'] = restObj.currentInterval;
 	let previousInterval = currentInterval['refined'];
@@ -148,7 +153,7 @@ export default function buildMidi(data: any) {
             if (event.appoggiatura || event.acciaccatura){
             }
             else if (event.durationType) {
-                if (idEvent === 0 && idMeasure === 0){
+                if (currentInterval['raw'] === undefined){
                     currentInterval['raw'] = 1;
                     currentInterval['refined'] = '01';
                     track += '01';
@@ -165,7 +170,7 @@ export default function buildMidi(data: any) {
                     lengthTrack += tmpEvent.length / 2;
                     track += tmpEvent;
                 } else if (event.durationType) {
-                    const restObj = convertRest(event, track, currentInterval, lengthTrack);
+                    const restObj = convertRest(event, track, currentInterval, lengthTrack, data.param.timeSig);
                     currentInterval['refined'] = restObj.currentIntervalRefined;
                     currentInterval['raw'] = restObj.currentIntervalRaw;
                     lengthTrack = restObj.lengthTrack;
