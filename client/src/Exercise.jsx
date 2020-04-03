@@ -2,7 +2,7 @@ import React from 'react';
 import Tone from 'tone';
 import {useState} from 'react'
 import ApiRequester from './Requester';
-import buildScore from './ScoreBuilder';
+import ScoreBuilder from './ScoreBuilder';
 import { useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import { isAccidental } from './PitchConverter';
@@ -22,6 +22,7 @@ export default function Exercise(){
     const [success, setSuccess] = useState(false);
     const [data, setData] = useState({});
     const [error, setError] = useState(false);
+    const [scoreBuilder, setScoreBuilder] = useState(new ScoreBuilder('G'));
     const classes = useStyles();
 
     useEffect(() => {
@@ -38,7 +39,7 @@ export default function Exercise(){
             if (data.exercise === undefined){
                 setError(true);
             } else {
-                buildScore(data, 0)
+                scoreBuilder.build(data, 0)
                 setMidi(data.midi);
                 setData(data);
             }
@@ -80,7 +81,7 @@ export default function Exercise(){
         let tmpAnswer = answer;
         if (answer === 0){
             setAnswer(64)
-            buildScore(data, 64);
+            scoreBuilder.build(data, 64);
         } else {
             tmpAnswer += 1;
             let armor = parseInt(data.param.keySig[0]);
@@ -93,7 +94,7 @@ export default function Exercise(){
             }
             setAnswer(tmpAnswer);
             console.log('before build score')
-            buildScore(data, tmpAnswer);
+            scoreBuilder.build(data, tmpAnswer);
         }
     }
 
@@ -101,7 +102,7 @@ export default function Exercise(){
         let tmpAnswer = answer;
         if (answer === 0){
             setAnswer(64)
-            buildScore(data, 64);
+            scoreBuilder.build(data, 64);
         } else {
             tmpAnswer -= 1;
             let armor = parseInt(data.param.keySig[0]);
@@ -114,7 +115,7 @@ export default function Exercise(){
             }
             setAnswer(tmpAnswer);
             console.log('before build score')
-            buildScore(data, tmpAnswer);
+            scoreBuilder.build(data, tmpAnswer);
         }
     }
 

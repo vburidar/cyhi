@@ -36,7 +36,7 @@ export function convertArmor(value, valueArmor, note, tabAccidentals){
 
 	if (valueArmor > 0)
 	{
-		for (let i=0; i < valueArmor + 1;i++)
+		for (let i=0; i < valueArmor;i++)
 		{
 			if ((value + sharpArmor[i]) % 12 === 0) {
 				if (note.Accidental && note.Accidental[0].subtype[0] === 'accidentalSharp') {
@@ -48,7 +48,7 @@ export function convertArmor(value, valueArmor, note, tabAccidentals){
 	}
 	if (valueArmor < 0)
 	{
-		for (let i=0; i < -valueArmor + 1; i++)
+		for (let i=0; i < -valueArmor; i++)
 		{
 			if ((value + flatArmor[i]) % 12 === 0) {
 				if (note.Accidental && note.Accidental[0].subtype[0] === 'accidentalFlat') {
