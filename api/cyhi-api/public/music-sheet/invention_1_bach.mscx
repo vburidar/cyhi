@@ -4542,10 +4542,10 @@
             </Chord>
           </voice>
         </Measure>
-      <Measure len="4/4">
+      <Measure>
         <voice>
           <Chord>
-            <durationType>whole</durationType>
+            <durationType>half</durationType>
             <Note>
               <pitch>64</pitch>
               <tpc>18</tpc>
@@ -8498,10 +8498,10 @@
             </Chord>
           </voice>
         </Measure>
-      <Measure len="4/4">
+      <Measure>
         <voice>
           <Chord>
-            <durationType>whole</durationType>
+            <durationType>half</durationType>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
