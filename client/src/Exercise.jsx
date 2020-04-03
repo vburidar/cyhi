@@ -21,6 +21,7 @@ export default function Exercise(){
     const [done, setDone] = useState(false);
     const [success, setSuccess] = useState(false);
     const [data, setData] = useState({});
+    const [error, setError] = useState(false);
     const classes = useStyles();
 
     useEffect(() => {
@@ -34,9 +35,13 @@ export default function Exercise(){
         apiRequester.call()
         .then(response => response.json())
         .then(data => {
-            buildScore(data, 0)
-            setMidi(data.midi);
-            setData(data);
+            if (data.exercise === undefined){
+                setError(true);
+            } else {
+                buildScore(data, 0)
+                setMidi(data.midi);
+                setData(data);
+            }
         })
         .catch(e => console.log(e));
     }, []);
@@ -124,7 +129,7 @@ export default function Exercise(){
     return(
         <div>
             <div id="Exercise"></div>
-            {!done && <div id="control">
+            {!error && !done && <div id="control">
             <Button className={classes.button} onClick={playMidi} variant="contained">Play Music</Button>
             <Button className={classes.button} onClick={up} variant="contained">Up</Button>
             <Button className={classes.button} onClick={down} variant="contained">Down</Button>
@@ -135,7 +140,8 @@ export default function Exercise(){
             {answer !== 0 && !done && <Button onClick={sendAnswer} variant="contained" color="primary">Validate</Button>}
             {done && success && <Typography>Congratulation!</Typography>}
             {done && !success && <Typography>Try Again</Typography>}
-            {done && <Button className={classes.button} onClick={() =>window.location.reload(false)}>Next Exercise</Button>}
+            {error && <Typography>There was a problem and this exercise could note be printed</Typography>}
+            {(error || done) && <Button className={classes.button} onClick={() =>window.location.reload(false)}>Next Exercise</Button>}
             </div>
         </div>
     )
