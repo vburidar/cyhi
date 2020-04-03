@@ -77,7 +77,6 @@ function parseEvent(event, notes, idEvent, VF, param, idStaff, tabAccidentals, a
         }
     })
     } else if (event.secret && answer !== 0){
-        console.log('ANSWER=', answer);
         const chord = [];
         let time = convertTime(event.durationType, event.dots);
         chord.push(convertArmor(parseInt(answer), parseInt(param.keySig[0]), [], tabAccidentals));
