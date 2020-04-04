@@ -135,7 +135,6 @@ export default class Note {
     }
 
     getStringValue(valueArmor, tabAccidentals){
-        console.log(tabAccidentals);
         const sharpArmor = [-6, -1, -8, -3, -10, -5, -12];
         const flatArmor = [-10, -3, -8, -1, -6, 1, -4];
     
@@ -146,8 +145,9 @@ export default class Note {
                 if ((this.pitch + sharpArmor[i]) % 12 === 0) {
                     if (this.isAccidental && this.accident === 'sharp') {
                         return (this.convertPitch(this.pitch, tabAccidentals));
+                    } else if (this.accident === 'sharp') {
+                        return (this.convertPitch(this.pitch - 1, tabAccidentals));
                     }
-                    return (this.convertPitch(this.pitch - 1, tabAccidentals));
                 }
             }
         }
@@ -159,7 +159,9 @@ export default class Note {
                     if (this.isAccidental && this.accident === 'flat') {
                         return (this.convertPitch(this.pitch, tabAccidentals));
                     }
-                    return (this.convertPitch(this.pitch + 1, tabAccidentals));
+                    else if (this.accident === 'flat') {
+                        return (this.convertPitch(this.pitch + 1, tabAccidentals));
+                    }
                 }
             }
         }
