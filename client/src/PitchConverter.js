@@ -1,35 +1,4 @@
 
-export function isAccidental(pitch, valueArmor){
-	const sharpArmor = [-6, -1, -8, -3, -10, -5, -12];
-	const flatArmor = [-10, -3, -8, -1, -6, 1, -4];
-	const noArmorSharp = [-5, 0, -7, -2, -9, -4, -11];
-	const noArmorFlat = [-11, -4, -9, -2, -7, 0, -5]
-
-	if (valueArmor >= 0)
-	{
-		for (let i=0; i < sharpArmor.length ;i++)
-		{
-			if ( i < valueArmor && (pitch + sharpArmor[i]) % 12 === 0){
-				return (false);
-			} else if (i >= valueArmor && (pitch + noArmorSharp[i]) % 12 === 0){
-				return (false);
-			}
-		}
-	}
-	if (valueArmor < 0)
-	{
-		for (let i=0; i < flatArmor.length; i++)
-		{
-			if (i < -valueArmor && (pitch + flatArmor[i]) % 12 === 0) {
-				return (false);	
-			} else if (i >= -valueArmor && (pitch + noArmorFlat[i]) % 12 === 0) {
-				return (false)
-			}
-		}
-	}
-	return (true);
-}
-
 export function convertArmor(value, valueArmor, note, tabAccidentals){
 	const sharpArmor = [-6, -1, -8, -3, -10, -5, -12];
 	const flatArmor = [-10, -3, -8, -1, -6, 1, -4];
@@ -100,7 +69,7 @@ export function getKeySignature(armorValue)
 
 export function convertPitch(input, noteObj, tabAccidentals){
 	let value = input;
-	let note ='h';
+	let note ='bbb';
     let height ='4';
     let accidental = '';
 	if (noteObj.Accidental) {
@@ -161,5 +130,8 @@ export function convertPitch(input, noteObj, tabAccidentals){
 		note = "b";
 		height = (value - 11) / 12 - 1;
     }
-    return (note + accidental + '/' + height);
+	if (note === 'bbb') {
+		console.log('pitch wasnt properly converted')
+	}
+	return (note + accidental + '/' + height);
 }

@@ -1,4 +1,5 @@
 import Vex from 'vexflow'
+import Note from './Note'
 import { convertArmor, getKeySignature } from './PitchConverter';
 
 
@@ -6,9 +7,13 @@ export default class ScoreBuilder {
 
 constructor(clef){
     this.clef = clef;
+    this.answerUser = new Note(0, false, '');
+    this.answer = new Note (0, false, '');
+    this.armor = 0;
+    this.accidental = [{sharp: [], flat: []}];
 }
 
-build(data, answer, id) {
+build(data) {
     let VF = Vex.Flow;
 
     let svg = document.getElementsByTagName("svg")[0];
@@ -20,8 +25,35 @@ build(data, answer, id) {
     renderer.resize(900, 300);
     var context = renderer.getContext();
     context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-    this.parseJson(data, VF, context, answer);
+    this.parseJson(data, VF, context);
     return(data);
+}
+
+setArmor(armor){
+    this.armor = parseInt(armor);
+    if (isNaN(armor)){
+        this.armor = 0;
+    } else {
+        this.armor = parseInt(armor);
+    };
+}
+
+upAnswerUser() {
+    if (this.answerUser.pitch === 0){
+        this.answerUser.init();
+    }
+    this.answerUser.up(this.armor);
+}
+
+downAnswerUser() {
+    if (this.answerUser.pitch === 0){
+        this.answerUser.init();
+    }
+    this.answerUser.down(this.armor);
+}
+
+setAnswer(answer){
+    this.answer.pitch = parseInt(answer);
 }
 
 convertClef(value) {
@@ -59,7 +91,7 @@ convertTime(value, dotted){
     }
 }
 
-parseVoice(voice, param, idStaff, VF, answer) {
+parseVoice(voice, param, VF) {
     const notes = [];
     const tabAccidentals = {
         flat : [],
@@ -69,12 +101,28 @@ parseVoice(voice, param, idStaff, VF, answer) {
         if (event.concertEventType){
             this.clef = this.convertClef(event.concertEventType[0]);
         }
-        this.parseEvent(event, notes, idEvent, VF, param, tabAccidentals, answer);
+        this.parseEvent(event, notes, VF, param, tabAccidentals);
     })
     return (notes);
 }
 
-parseEvent(event, notes, idEvent, VF, param, tabAccidentals, answer) {
+addChordToContext(chord, VF, notes, time, dotted) {
+    notes.push(new VF.StaveNote({clef: this.clef, keys: chord, duration: time }));
+    chord.forEach((note, idNote) => {
+        if (dotted){
+            notes[notes.length - 1].addDotToAll();
+        }
+        if (note.match(/.#\//)){
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("#"));
+        } else if (note.match(/.b\//)) {
+        notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
+    } else if (note.match(/.n\//)) {
+        notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
+    }
+    });
+}
+
+parseEvent(event, notes, VF, param, tabAccidentals) {
     if (event.appoggiatura || event.acciaccatura){
         return;
     } else if (event.concertEventType) {
@@ -85,37 +133,23 @@ parseEvent(event, notes, idEvent, VF, param, tabAccidentals, answer) {
         event.Note.forEach((note, idNote) => {
             chord.push(convertArmor(parseInt(note.pitch[0]), parseInt(param.keySig[0]), note, tabAccidentals));
         })
-        notes.push(new VF.StaveNote({clef: this.clef, keys: chord, duration: time }));
-        chord.forEach((note, idNote) => {
-        if (event.dots){
-            notes[notes.length - 1].addDotToAll();
-        }
-        if (note.match(/.#\//)){
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("#"));
-        } else if (note.match(/.b\//)) {
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
-        } else if (note.match(/.n\//)) {
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
-        }
-    })
-    } else if (event.secret && answer !== 0){
+        this.addChordToContext(chord, VF, notes, time, event.dots)
+    } else if (event.secret && this.answerUser.pitch !== 0){
         const chord = [];
         let time = this.convertTime(event.durationType, event.dots);
-        chord.push(convertArmor(parseInt(answer), parseInt(param.keySig[0]), [], tabAccidentals));
-        notes.push(new VF.StaveNote({clef: this.clef, keys: chord, duration: time }));
-        notes[notes.length - 1].setStyle({fillStyle: "red", strokeStyle: "red"});
-        chord.forEach((note, idNote) => {
-        if (event.dots){
-            notes[notes.length - 1].addDotToAll();
+        chord.push(this.answerUser.getStringValue(this.armor, tabAccidentals));
+        if (this.answer.pitch !== 0 && this.answer.pitch !== this.answerUser.pitch){
+            chord.push(this.answer.getStringValue(this.armor, tabAccidentals));
         }
-        if (note.match(/.#\//)){
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("#"));
-        } else if (note.match(/.b\//)) {
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
-        } else if (note.match(/.n\//)) {
-            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
+        this.addChordToContext(chord, VF, notes, time, event.dots);
+        if (this.answer.pitch && this.answer.pitch !== this.answerUser.pitch){
+            notes[notes.length-1].setKeyStyle(1, {fillStyle: "green", strokeStyle: "black"});
         }
-    })
+        if (this.answer.pitch === this.answerUser.pitch){
+            notes[notes.length - 1].setStyle({fillStyle: "green", strokeStyle: "green"});
+        } else {
+            notes[notes.length - 1].setKeyStyle(0, {fillStyle: "red", strokeStyle: "red"});
+        }
     } else if (event.durationType){
         if (event.durationType[0] === 'measure') {
             const customDuration = new Vex.Flow.Fraction(param.timeSig.sigN, param.timeSig.sigD);
@@ -132,12 +166,11 @@ parseEvent(event, notes, idEvent, VF, param, tabAccidentals, answer) {
     }
 }
 
-parseJson(data, VF, context, answer) {
+parseJson(data, VF, context) {
     const tabStaff =[]; //to store all the staves created with Vexflow
     const voiceToStaff = []; //to store on which staff each voice is supposed to be drawn
     let tabVoice = []; //to store all the voices (notes / rest / change of Clef)
     //this part is to parse the json file and create the VF objects
-    console.log(this.getDottedValue('whole'));
     data.exercise.forEach((Staff, idStaff) => {
         this.clef = this.convertClef(data.param.clef[idStaff]);
         Staff.forEach((measure, idMeasure) => {
@@ -159,7 +192,7 @@ parseJson(data, VF, context, answer) {
                 if (!voiceToStaff[idMeasure]){
                     voiceToStaff[idMeasure] = [];
                 }
-                tabVoice[idMeasure].push(this.parseVoice(voice, data.param, idStaff, VF, answer));
+                tabVoice[idMeasure].push(this.parseVoice(voice, data.param, VF));
                 voiceToStaff[idMeasure][tabVoice[idMeasure].length - 1] = tabStaff.length - 1;
             })
         });

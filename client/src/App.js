@@ -27,13 +27,6 @@ const useStyles = makeStyles((theme) => ({
 
 function App() {
   const classes = useStyles();
-  /*return (
-    <div className={classes.root}>
-      <Header />
-      <Exercise />
-      <Footer />
-    </div>
-  );*/
 
   return (
     <div className={classes.root}>
