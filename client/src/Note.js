@@ -34,11 +34,13 @@ export default class Note {
         const noArmorSharp = [-5, 0, -7, -2, -9, -4, -11];
         const noArmorFlat = [-11, -4, -9, -2, -7, 0, -5]
     
+        console.log(this.pitch);
         if (valueArmor >= 0)
         {
             for (let i=0; i < sharpArmor.length ;i++)
             {
                 if ( i < valueArmor && (this.pitch + sharpArmor[i]) % 12 === 0){
+                    console.log('test sharp armor', i);
                     return ({accident: 'sharp', isAccidental: false});
                 } else if (i >= valueArmor && (this.pitch + noArmorSharp[i]) % 12 === 0){
                     return ({accident: 'natural', isAccidental: false});
@@ -57,6 +59,38 @@ export default class Note {
             }
         }
         return ({accident:'unknown', isAccidental: true});
+    }
+
+    testAccidental(valueArmor){
+        const sharpArmor = [-6, -1, -8, -3, -10, -5, -12];
+        const flatArmor = [-10, -3, -8, -1, -6, 1, -4];
+        const noArmorSharp = [-5, 0, -7, -2, -9, -4, -11];
+        const noArmorFlat = [-11, -4, -9, -2, -7, 0, -5]
+    
+        console.log(this.pitch);
+        if (valueArmor >= 0)
+        {
+            for (let i=0; i < sharpArmor.length ;i++)
+            {
+                if ( i < valueArmor && (this.pitch + sharpArmor[i]) % 12 === 0 && this.accident === 'sharp'){
+                    return false;
+                } else if (i >= valueArmor && (this.pitch + noArmorSharp[i]) % 12 === 0 && this.accident === 'natural'){
+                    return false;
+                }
+            }
+        }
+        if (valueArmor < 0)
+        {
+            for (let i=0; i < flatArmor.length; i++)
+            {
+                if (i < -valueArmor && (this.pitch + flatArmor[i]) % 12 === 0 && this.accident === 'flat') {
+                    return (false);	
+                } else if (i >= -valueArmor && (this.pitch + noArmorFlat[i]) % 12 === 0 && this.accident === 'natural') {
+                    return (false);
+                }
+            }
+        }
+        return (true);
     }
 
     setAccident(accidental, valueArmor) {
@@ -97,7 +131,7 @@ export default class Note {
             }
         }
         console.log('after update:', this.getAccident(valueArmor));
-        this.isAccidental = this.getAccident(valueArmor).isAccidental;
+        this.isAccidental = this.testAccidental(valueArmor);
     }
 
     getStringValue(valueArmor, tabAccidentals){
@@ -134,7 +168,7 @@ export default class Note {
     
     convertPitch(input, tabAccidentals){
         let value = input;
-        let note ='bbb';
+        let note ='b';
         let height ='4';
         let accidental = '';
         if (this.isAccidental) {
