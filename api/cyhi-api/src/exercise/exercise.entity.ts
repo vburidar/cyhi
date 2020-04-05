@@ -7,15 +7,15 @@ export class Exercise{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
-    path: string;
-
-    @ManyToOne(type => MusicSheet, music_sheet => music_sheet.exercise)
-    music_sheet: MusicSheet;
+    @ManyToOne(type => MusicSheet, musicSheet => musicSheet.exercise)
+    musicSheet: MusicSheet;
 
     @Column()
     barStart: number;
 
     @Column()
-    bar_end: number;
+    barEnd: number;
+
+    @Column()
+    answer: number
 }

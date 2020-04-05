@@ -6,7 +6,7 @@ export class MusicSheet{
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToMany(type=>Exercise, exercise => exercise.music_sheet)
+    @OneToMany(type=>Exercise, exercise => exercise.musicSheet)
     exercise: Exercise[];
 
     @Column()

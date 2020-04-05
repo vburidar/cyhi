@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MusicSheet } from './music-sheet.entity';
+import { MusicSheetXml } from 'src/interface/musicSheet.interface'
 
 @Injectable()
 export class MusicSheetService {
@@ -11,6 +12,8 @@ export class MusicSheetService {
         @InjectRepository(MusicSheet)
         private musicSheetRepository: Repository<MusicSheet>,
     ) {}
+    
+    
     
     async setupDatabase() {
         const _this = this;
@@ -20,7 +23,7 @@ export class MusicSheetService {
         .from('music_sheet')
         .where('id > 0')
         .execute();
-        let pathToScoreDir = path.join(__dirname, '..', '..', 'public', 'music-sheet');
+        const pathToScoreDir = path.join(__dirname, '..', '..', 'public', 'music-sheet');
         fs.readdir(pathToScoreDir, function (err, files) {
             //handling error
             if (err) {
@@ -28,29 +31,27 @@ export class MusicSheetService {
             } 
             //listing all files using forEach
             files.forEach(async function (file) {
-                let musicSheet = new MusicSheet;
+                const musicSheet = new MusicSheet;
                 musicSheet.path = path.join(pathToScoreDir, file);
                 await _this.musicSheetRepository.save(musicSheet);
             });
         });
     }
 
-    async getRandom(): Promise<string>{
-        let nb = await this.musicSheetRepository.count();
-        let randomId = Math.floor(Math.random() * nb);
-        console.log('randomId=', randomId);
-        let randomRow = await this.musicSheetRepository.find({
+    async getRandom(): Promise<MusicSheetXml>{
+        const nb = await this.musicSheetRepository.count();
+        const randomId = Math.floor(Math.random() * nb);
+        const randomRow = await this.musicSheetRepository.find({
             skip: randomId, //replace with randomId
             take: 1,
         });
-        console.log(randomRow);
-        return (fs.readFileSync(randomRow[0].path, "utf8"));
+        return ({id: randomRow[0].id, xml: fs.readFileSync(randomRow[0].path, "utf8")});
     }
 
-    async get(id) : Promise<string>{
+    async get(id) : Promise<MusicSheetXml>{
         try {
-            let row = await this.musicSheetRepository.findOne(id);
-            return (fs.readFileSync(row.path, "utf8"));
+            const row = await this.musicSheetRepository.findOne(id);
+            return ({id:row.id, xml: fs.readFileSync(row.path, "utf8")});
         } catch (e) {
             throw (e);
         }

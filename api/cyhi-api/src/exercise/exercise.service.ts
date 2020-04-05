@@ -1,13 +1,13 @@
 
-import * as util from 'util';
 import { parseString } from 'xml2js';
-import { Injectable, Param } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exercise } from 'src/exercise/exercise.entity';
 import { MusicSheetService } from 'src/music-sheet/music-sheet.service';
 import buildMidi from 'src/MidiBuilder';
 import { AnswerService } from 'src/answer/answer.service';
+import { MusicSheetXml } from 'src/interface/musicSheet.interface'
 
 
 @Injectable()
@@ -15,18 +15,18 @@ export class ExerciseService {
     
     constructor(
         @InjectRepository(Exercise)
-        private exerciceRepository: Repository<Exercise>,
+        private exerciseRepository: Repository<Exercise>,
         private readonly musicSheetService: MusicSheetService,
         private readonly answerService: AnswerService,
     ) {}
 
-    async getExerciseObj(json, start, nbMeasure){
-        let exercise: any = [];
-        let param:any = {
+    async getExerciseObj(json, start, nbMeasure, musicSheetId){
+        const exercise: any = [];
+        const param:any = {
             nbMeasure,
             clef: [],
         };
-        let missingNotePool = [];
+        const missingNotePool = [];
         json.Part[0].Staff.map((staff, idStaff) => {
             if (staff.defaultEvent){
                 param.clef[idStaff] =  staff.defaultEvent[0];
@@ -71,16 +71,22 @@ export class ExerciseService {
             });
         })
         const midi = buildMidi({exercise, param})
-        let missingNoteId = Math.floor(Math.random() * (missingNotePool.length));
-        let missingNoteParams = {
+        const missingNoteId = Math.floor(Math.random() * (missingNotePool.length));
+        const missingNoteParams = {
             idStaff: missingNotePool[missingNoteId].idStaff,
             idMeasure: missingNotePool[missingNoteId].idMeasure,
             idVoice: missingNotePool[missingNoteId].idVoice,
             idEvent: missingNotePool[missingNoteId].idEvent}
-        let missingNote = exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
+        const missingNote = exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         delete exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
-        let insert = await this.answerService.create(missingNote[0].pitch[0])
+        const insert = await this.answerService.create(missingNote[0].pitch[0])
+        /*const insertNew = await this.exerciseRepository.save({
+            musicSheetId: musicSheetId,
+            barStart: start,
+            barEnd: start + nbMeasure,
+            answer: missingNote[0].pitch[0],
+        })*/
         if (midi === null){
             return ({exercise: undefined, param: undefined, midi: undefined, id: undefined})
         }
@@ -88,32 +94,33 @@ export class ExerciseService {
     }
     
     async createRandom(nbMeasure: number) {
-        let xml = await this.musicSheetService.getRandom()
-        xml = xml.replace(/Chord|Rest|Clef/g, 'Event');
+        const musicSheet: MusicSheetXml = await this.musicSheetService.getRandom()
+        console.log('ID =', musicSheet.id);
+        const xml = musicSheet.xml.replace(/Chord|Rest|Clef/g, 'Event');
         let json: any = {};
         parseString(xml, function getResult(err, result) {
             json = result;
         })
-        let length = json.museScore.Score[0].Staff[0].Measure.length;
-        let start = Math.floor(Math.random() * (length - nbMeasure + 1));
-        return (await this.getExerciseObj(json.museScore.Score[0], start, nbMeasure));
+        const length = json.museScore.Score[0].Staff[0].Measure.length;
+        const start = Math.floor(Math.random() * (length - nbMeasure + 1));
+        
+        return (await this.getExerciseObj(json.museScore.Score[0], start, nbMeasure, musicSheet.id));
     }
 
     async create(id:number, start:number, nbMeasure:number){
         try {
-            let xml: any = await this.musicSheetService.get(id);
-            xml = xml.replace(/Chord|Rest|Clef/g, 'Event');
+            const musicSheet: MusicSheetXml = await this.musicSheetService.get(id);
+            const xml = musicSheet.xml.replace(/Chord|Rest|Clef/g, 'Event');
             let json: any = {};
             parseString(xml, function getResult(err, result) {
             json = result;
             });
-            return (this.getExerciseObj(json.museScore.Score[0], start, nbMeasure));
+            return (this.getExerciseObj(json.museScore.Score[0], start, nbMeasure, musicSheet.id));
         } catch (e) {
             console.log(e);
             return ({exercise: undefined, param: undefined, midi: undefined, id: undefined});
         }
     }
-
 
     async getAnswer(id) {
         return (await this.answerService.getAnswer(id));
