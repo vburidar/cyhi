@@ -74,8 +74,8 @@ export default function Exercise(){
         .then(response => response.json())
         .then(body => {
             setDone(true);
-            scoreBuilder.setAnswer(body.pitch);
-            setSuccess(body.pitch === scoreBuilder.answerUser.pitch);
+            scoreBuilder.setAnswer(body.answer);
+            setSuccess(body.answer === scoreBuilder.answerUser.pitch);
             scoreBuilder.build(data);
         });
     }
