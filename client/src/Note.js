@@ -30,10 +30,8 @@ export default class Note {
 
     testBackToArmor(tabAccidentals, offsetAccidental){
         for (let i=0; i < tabAccidentals.length; i++){
-            console.log(tabAccidentals[i], this.pitch, offsetAccidental)
             if (tabAccidentals[i] === this.pitch + offsetAccidental){
                 tabAccidentals.splice(tabAccidentals.indexOf(this.pitch + offsetAccidental));
-                console.log('RETURNED TRUE');
                 return (true);
             }
         }
@@ -64,9 +62,7 @@ export default class Note {
             for (let i=0; i < flatArmor.length; i++)
             {
                 if (i < -valueArmor && (this.pitch + flatArmor[i]) % 12 === 0) {
-                    console.log(this.pitch, tabAccidentals);
                     const backToArmor = this.testBackToArmor(tabAccidentals.sharp, 2) || this.testBackToArmor(tabAccidentals.natural, 1);
-                    console.log('returning isAccidental=', backToArmor);
                     return ({accident: 'flat', isAccidental: backToArmor});	
                 } else if (i >= -valueArmor && (this.pitch + noArmorFlat[i]) % 12 === 0) {
                     const backToArmor = this.testBackToArmor(tabAccidentals.sharp, 1) || this.testBackToArmor(tabAccidentals.flat, -1)
@@ -95,7 +91,6 @@ export default class Note {
         const noArmorSharp = [-5, 0, -7, -2, -9, -4, -11];
         const noArmorFlat = [-11, -4, -9, -2, -7, 0, -5]
     
-        console.log(this.pitch);
         if (valueArmor >= 0)
         {
             for (let i=0; i < sharpArmor.length ;i++)
