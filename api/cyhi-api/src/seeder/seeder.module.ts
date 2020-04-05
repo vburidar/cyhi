@@ -5,8 +5,6 @@ import { SeederService } from 'src/seeder/seeder.service';
 import { MusicSheetModule } from 'src/music-sheet/music-sheet.module';
 import { Exercise } from 'src/exercise/exercise.entity';
 import { ExerciseModule } from 'src/exercise/exercise.module';
-import { Answer } from 'src/answer/answer.entity'
-import { AnswerModule } from 'src/answer/answer.module';
 
 @Module({
     imports: [
@@ -17,12 +15,11 @@ import { AnswerModule } from 'src/answer/answer.module';
         username: 'postgres',
         password: 'bonjour',
         database: 'cyhi',
-        entities: [MusicSheet, Exercise, Answer],
+        entities: [MusicSheet, Exercise],
         synchronize: true,
       }),
       MusicSheetModule,
-      ExerciseModule, 
-      AnswerModule],
+      ExerciseModule],
     providers: [SeederService],
   })
   export class SeederModule {}

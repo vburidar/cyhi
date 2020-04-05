@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { Exercise } from 'src/exercise/exercise.entity';
 import { MusicSheetService } from 'src/music-sheet/music-sheet.service';
 import buildMidi from 'src/MidiBuilder';
-import { AnswerService } from 'src/answer/answer.service';
 import { MusicSheetXml } from 'src/interface/musicSheet.interface'
 
 
@@ -17,7 +16,6 @@ export class ExerciseService {
         @InjectRepository(Exercise)
         private exerciseRepository: Repository<Exercise>,
         private readonly musicSheetService: MusicSheetService,
-        private readonly answerService: AnswerService,
     ) {}
 
     async getExerciseObj(json, start, nbMeasure, musicSheetId){
@@ -80,17 +78,17 @@ export class ExerciseService {
         const missingNote = exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         delete exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
         exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
-        const insert = await this.answerService.create(missingNote[0].pitch[0])
-        /*const insertNew = await this.exerciseRepository.save({
-            musicSheetId: musicSheetId,
+        console.log(await this.musicSheetService.get(musicSheetId));
+        const insertExercise = await this.exerciseRepository.save({
+            musicSheet: await this.musicSheetService.get(musicSheetId),
             barStart: start,
             barEnd: start + nbMeasure,
             answer: missingNote[0].pitch[0],
-        })*/
+        })
         if (midi === null){
             return ({exercise: undefined, param: undefined, midi: undefined, id: undefined})
         }
-        return ({exercise, param, midi, id: insert.id});
+        return ({exercise, param, midi, id: insertExercise.id});
     }
     
     async createRandom(nbMeasure: number) {
@@ -109,7 +107,7 @@ export class ExerciseService {
 
     async create(id:number, start:number, nbMeasure:number){
         try {
-            const musicSheet: MusicSheetXml = await this.musicSheetService.get(id);
+            const musicSheet: MusicSheetXml = await this.musicSheetService.getXml(id);
             const xml = musicSheet.xml.replace(/Chord|Rest|Clef/g, 'Event');
             let json: any = {};
             parseString(xml, function getResult(err, result) {
@@ -123,7 +121,7 @@ export class ExerciseService {
     }
 
     async getAnswer(id) {
-        return (await this.answerService.getAnswer(id));
+        return (await this.exerciseRepository.findOne(id));
     }
     
 }

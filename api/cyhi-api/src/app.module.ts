@@ -6,9 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exercise } from './exercise/exercise.entity';
 import { MusicSheet } from './music-sheet/music-sheet.entity';
 import { MusicSheetModule } from './music-sheet/music-sheet.module';
-import { Answer } from './answer/answer.entity';
-import { AnswerModule } from './answer/answer.module';
-import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [
@@ -19,12 +16,11 @@ import { SeederModule } from './seeder/seeder.module';
       username: 'postgres',
       password: 'bonjour',
       database: 'cyhi',
-      entities: [Exercise, MusicSheet, Answer],
+      entities: [Exercise, MusicSheet],
       synchronize: true,
     }),
     ExerciseModule,
     MusicSheetModule,
-    AnswerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

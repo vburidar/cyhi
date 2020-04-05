@@ -48,12 +48,12 @@ export class MusicSheetService {
         return ({id: randomRow[0].id, xml: fs.readFileSync(randomRow[0].path, "utf8")});
     }
 
-    async get(id) : Promise<MusicSheetXml>{
-        try {
+    async getXml(id) : Promise<MusicSheetXml>{
             const row = await this.musicSheetRepository.findOne(id);
             return ({id:row.id, xml: fs.readFileSync(row.path, "utf8")});
-        } catch (e) {
-            throw (e);
-        }
+    }
+
+    async get(id) : Promise<MusicSheet>{
+        return (await this.musicSheetRepository.findOne(id));
     }
 }
