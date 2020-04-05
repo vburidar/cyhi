@@ -187,7 +187,6 @@ export default class Note {
         let accidental = '';
         if (this.isAccidental) {
             if (this.accident === 'sharp'){
-                console.log('ADDED SHARP TO TAB ACCIDENTALS');
                 tabAccidentals.sharp.push(value);
                 accidental = '#';
                 value -= 1;

@@ -88,7 +88,6 @@ export default function Exercise(){
             scoreBuilder.upAnswerUser();
         }
         scoreBuilder.build(data);
-        console.log('answerUser =', scoreBuilder.answerUser);
     }
 
     const down = () => {
@@ -99,25 +98,21 @@ export default function Exercise(){
             scoreBuilder.downAnswerUser();
         }
         scoreBuilder.build(data);
-        console.log('answerUser =', scoreBuilder.answerUser);
     }
 
     const sharp =() => {
         scoreBuilder.answerUser.setAccident('sharp', scoreBuilder.armor);
         scoreBuilder.build(data);
-        console.log('answerUser =', scoreBuilder.answerUser);
     }
 
     const flat =() => {
         scoreBuilder.answerUser.setAccident('flat', scoreBuilder.armor);
         scoreBuilder.build(data);
-        console.log('answerUser =', scoreBuilder.answerUser);
     }
 
     const natural = () => {
         scoreBuilder.answerUser.setAccident('natural', scoreBuilder.armor);
         scoreBuilder.build(data);
-        console.log('answerUser =', scoreBuilder.answerUser);
     }
 
     return(
