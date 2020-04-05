@@ -1,6 +1,6 @@
 export default class Note {
 
-    constructor(pitch, isAccidental, accident, armor, tabAccidentals){
+    constructor(pitch, isAccidental, accident) {
         this.pitch = pitch;
         this.isAccidental = isAccidental;
         this.accident = accident;
@@ -28,19 +28,17 @@ export default class Note {
         this.accident = this.getAccident(armor).accident;
     }
 
-    getAccident(valueArmor){
+    getAccident(valueArmor, tabAccidentals){
         const sharpArmor = [-6, -1, -8, -3, -10, -5, -12];
         const flatArmor = [-10, -3, -8, -1, -6, 1, -4];
         const noArmorSharp = [-5, 0, -7, -2, -9, -4, -11];
         const noArmorFlat = [-11, -4, -9, -2, -7, 0, -5]
     
-        console.log(this.pitch);
         if (valueArmor >= 0)
         {
             for (let i=0; i < sharpArmor.length ;i++)
             {
                 if ( i < valueArmor && (this.pitch + sharpArmor[i]) % 12 === 0){
-                    console.log('test sharp armor', i);
                     return ({accident: 'sharp', isAccidental: false});
                 } else if (i >= valueArmor && (this.pitch + noArmorSharp[i]) % 12 === 0){
                     return ({accident: 'natural', isAccidental: false});
@@ -55,6 +53,18 @@ export default class Note {
                     return ({accident: 'flat', isAccidental: false});	
                 } else if (i >= -valueArmor && (this.pitch + noArmorFlat[i]) % 12 === 0) {
                     return ({accident: 'natural', isAccidental: false});
+                }
+            }
+        }
+        if (tabAccidentals) {
+            for (let i =0; i < tabAccidentals.flat.length; i++){
+                if (this.pitch === tabAccidentals.flat[i]) {
+                    return ({accident: 'flat', isAccidental: false});
+                }
+            }
+            for (let i =0; i < tabAccidentals.sharp.length; i++){
+                if (this.pitch === tabAccidentals.sharp[i]) {
+                    return ({accident: 'sharp', isAccidental: false});
                 }
             }
         }

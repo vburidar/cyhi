@@ -115,9 +115,9 @@ addChordToContext(chord, VF, notes, time, dotted) {
         if (note.match(/.#\//)){
             notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("#"));
         } else if (note.match(/.b\//)) {
-        notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
-    } else if (note.match(/.n\//)) {
-        notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("b"));
+        } else if (note.match(/.n\//)) {
+            notes[notes.length - 1].addAccidental(idNote, new VF.Accidental("n"));
     }
     });
 }
@@ -131,7 +131,24 @@ parseEvent(event, notes, VF, param, tabAccidentals) {
         const chord = [];
         let time = this.convertTime(event.durationType, event.dots);
         event.Note.forEach((note, idNote) => {
-            chord.push(convertArmor(parseInt(note.pitch[0]), parseInt(param.keySig[0]), note, tabAccidentals));
+            const testNote = new Note(parseInt(note.pitch[0]), false, '');
+            const accident = testNote.getAccident(parseInt(this.armor), tabAccidentals);
+            if (note.Accidental && accident.accident === 'unknown') {
+                if (note.Accidental[0].subtype[0] === 'accidentalSharp'){
+                    testNote.isAccidental = true;
+                    testNote.accident = 'sharp';
+                } else if (note.Accidental[0].subtype[0] === 'accidentalFlat'){
+                    testNote.isAccidental = true;
+                    testNote.accident = 'flat';
+                } else if (note.Accidental[0].subtype[0] === 'accidentalNatural'){
+                    testNote.isAccidental = true;
+                    testNote.accident = 'natural';
+                }
+            } else {
+                testNote.isAccidental = accident.isAccidental;
+                testNote.accident = accident.accident;
+            }
+            chord.push(testNote.getStringValue(this.armor, tabAccidentals));
         })
         this.addChordToContext(chord, VF, notes, time, event.dots)
     } else if (event.secret && this.answerUser.pitch !== 0){

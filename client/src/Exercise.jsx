@@ -4,13 +4,15 @@ import {useState} from 'react'
 import ApiRequester from './Requester';
 import ScoreBuilder from './ScoreBuilder';
 import { useEffect } from 'react';
-import Button from '@material-ui/core/Button';
+import { Button, Typography, Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography'
 
 const useStyles = makeStyles((theme) => ({
     button: {
       margin: theme.spacing(1),
+    },
+    successTypo: {
+        color: '#156134',
     },
   }));
 
@@ -131,8 +133,8 @@ export default function Exercise(){
             </div>}
             <div id="validate">
             { answered && !done && <Button onClick={sendAnswer} variant="contained" color="primary">Validate</Button>}
-            {done && success && <Typography>Congratulation!</Typography>}
-            {done && !success && <Typography>Try Again</Typography>}
+            {done && success && <Typography className={classes.successTypo}><b>Congratulation you found the right pitch!</b></Typography>}
+            {done && !success && <Typography>Not this time. Don't give up!</Typography>}
             {error && <Typography>There was a problem and this exercise could note be printed</Typography>}
             {(error || done) && <Button className={classes.button} onClick={() =>window.location.reload(false)}>Next Exercise</Button>}
             </div>
