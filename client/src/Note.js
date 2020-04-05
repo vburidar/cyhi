@@ -12,20 +12,32 @@ export default class Note {
     
     up(armor) {
         this.pitch += 1;
-        while (this.getAccident(armor).isAccidental){
+        while (this.getAccident(armor, {flat:[], sharp:[], natural:[]}).isAccidental){
             this.pitch += 1;
         }
         this.isAccidental = false;
-        this.accident = this.getAccident(armor).accident;
+        this.accident = this.getAccident(armor, {flat:[], sharp:[], natural:[]}).accident;
     }
 
     down(armor) {
         this.pitch -= 1;
-        while (this.getAccident(armor).isAccidental){
+        while (this.getAccident(armor, {flat:[], sharp:[], natural:[]}).isAccidental){
             this.pitch -= 1;
         }
         this.isAccidental = false;
-        this.accident = this.getAccident(armor).accident;
+        this.accident = this.getAccident(armor, {flat:[], sharp:[], natural:[]}).accident;
+    }
+
+    testBackToArmor(tabAccidentals, offsetAccidental){
+        for (let i=0; i < tabAccidentals.length; i++){
+            console.log(tabAccidentals[i], this.pitch, offsetAccidental)
+            if (tabAccidentals[i] === this.pitch + offsetAccidental){
+                tabAccidentals.splice(tabAccidentals.indexOf(this.pitch + offsetAccidental));
+                console.log('RETURNED TRUE');
+                return (true);
+            }
+        }
+        return (false)
     }
 
     getAccident(valueArmor, tabAccidentals){
@@ -39,9 +51,11 @@ export default class Note {
             for (let i=0; i < sharpArmor.length ;i++)
             {
                 if ( i < valueArmor && (this.pitch + sharpArmor[i]) % 12 === 0){
-                    return ({accident: 'sharp', isAccidental: false});
+                    const backToArmor = this.testBackToArmor(tabAccidentals.flat, -2) || this.testBackToArmor(tabAccidentals.natural, -1);
+                    return ({accident: 'sharp', isAccidental: backToArmor});
                 } else if (i >= valueArmor && (this.pitch + noArmorSharp[i]) % 12 === 0){
-                    return ({accident: 'natural', isAccidental: false});
+                    const backToArmor = this.testBackToArmor(tabAccidentals.sharp, 1) || this.testBackToArmor(tabAccidentals.flat, -1);
+                    return ({accident: 'natural', isAccidental: backToArmor});
                 }
             }
         }
@@ -50,9 +64,13 @@ export default class Note {
             for (let i=0; i < flatArmor.length; i++)
             {
                 if (i < -valueArmor && (this.pitch + flatArmor[i]) % 12 === 0) {
-                    return ({accident: 'flat', isAccidental: false});	
+                    console.log(this.pitch, tabAccidentals);
+                    const backToArmor = this.testBackToArmor(tabAccidentals.sharp, 2) || this.testBackToArmor(tabAccidentals.natural, 1);
+                    console.log('returning isAccidental=', backToArmor);
+                    return ({accident: 'flat', isAccidental: backToArmor});	
                 } else if (i >= -valueArmor && (this.pitch + noArmorFlat[i]) % 12 === 0) {
-                    return ({accident: 'natural', isAccidental: false});
+                    const backToArmor = this.testBackToArmor(tabAccidentals.sharp, 1) || this.testBackToArmor(tabAccidentals.flat, -1)
+                    return ({accident: 'natural', isAccidental: backToArmor});
                 }
             }
         }
@@ -140,7 +158,6 @@ export default class Note {
                 this.accident = 'sharp';
             }
         }
-        console.log('after update:', this.getAccident(valueArmor));
         this.isAccidental = this.testAccidental(valueArmor);
     }
 
@@ -185,6 +202,7 @@ export default class Note {
         let accidental = '';
         if (this.isAccidental) {
             if (this.accident === 'sharp'){
+                console.log('ADDED SHARP TO TAB ACCIDENTALS');
                 tabAccidentals.sharp.push(value);
                 accidental = '#';
                 value -= 1;
@@ -194,12 +212,7 @@ export default class Note {
                 value += 1;
             } else if (this.accident === 'natural'){
                 accidental = 'n';
-                if (tabAccidentals.flat.includes(value - 1)){
-                    tabAccidentals.flat.splice(tabAccidentals.flat.indexOf(value - 1))
-                }
-                if (tabAccidentals.sharp.includes(value + 1)){
-                    tabAccidentals.sharp.splice(tabAccidentals.flat.indexOf(value + 1))
-                }
+                tabAccidentals.natural.push(value);
             } 
         } else if (tabAccidentals.sharp.includes(value)){
             value -= 1;

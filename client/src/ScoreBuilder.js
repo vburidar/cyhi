@@ -96,6 +96,7 @@ parseVoice(voice, param, VF) {
     const tabAccidentals = {
         flat : [],
         sharp : [],
+        natural: [],
     };
     voice.forEach((event, idEvent) => {
         if (event.concertEventType){
@@ -131,6 +132,7 @@ parseEvent(event, notes, VF, param, tabAccidentals) {
         const chord = [];
         let time = this.convertTime(event.durationType, event.dots);
         event.Note.forEach((note, idNote) => {
+            console.log('pitch=', note.pitch[0]);
             const testNote = new Note(parseInt(note.pitch[0]), false, '');
             const accident = testNote.getAccident(parseInt(this.armor), tabAccidentals);
             if (note.Accidental && accident.accident === 'unknown') {
@@ -145,6 +147,7 @@ parseEvent(event, notes, VF, param, tabAccidentals) {
                     testNote.accident = 'natural';
                 }
             } else {
+                console.log('setting isAccidental=', accident.isAccidental, 'accident=', accident.accident);
                 testNote.isAccidental = accident.isAccidental;
                 testNote.accident = accident.accident;
             }
