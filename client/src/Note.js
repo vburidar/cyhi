@@ -117,38 +117,28 @@ export default class Note {
     }
 
     setAccident(accidental, valueArmor) {
-        console.log('set Accident ' , accidental, 'on', this);
         if ( this.accident === 'sharp'){
-            console.log('note origin accident = sharp')
             if (accidental === 'flat'){
-                console.log('note new accident= flat');
                 this.pitch -= 2;
                 this.accident = 'flat';
             } else if (accidental === 'natural') {
-                console.log('note new accident = natural');
                 this.pitch -= 1;
                 this.accident = 'natural';
             }
             
         } else if (this.accident === 'flat'){
-            console.log('note origin accident = flat')
             if (accidental === 'sharp'){
-                console.log('note new accident=sharp')
                 this.pitch += 2;
                 this.accident = 'sharp';
             } else if (accidental === 'natural') {
-                console.log('note new accident=natural')
                 this.pitch += 1;
                 this.accident = 'natural';
             }
         } else if (this.accident === 'natural') {
-            console.log('note origin accident = natural');
             if (accidental === 'flat'){
-                console.log('note new accident=flat')
                 this.pitch -= 1;
                 this.accident = 'flat';
             } else if (accidental === 'sharp') {
-                console.log('note new accident=sharp')
                 this.pitch += 1;
                 this.accident = 'sharp';
             }
