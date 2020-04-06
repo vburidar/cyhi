@@ -4,7 +4,7 @@ import {useState} from 'react'
 import ApiRequester from './Requester';
 import ScoreBuilder from './ScoreBuilder';
 import { useEffect } from 'react';
-import { Button, Typography, Paper } from '@material-ui/core';
+import { Button, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({

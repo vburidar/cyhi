@@ -1,6 +1,6 @@
 import Vex from 'vexflow'
 import Note from './Note'
-import { convertArmor, getKeySignature } from './PitchConverter';
+import { getKeySignature } from './PitchConverter';
 
 
 export default class ScoreBuilder {
