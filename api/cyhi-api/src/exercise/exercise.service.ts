@@ -18,80 +18,8 @@ export class ExerciseService {
         private readonly musicSheetService: MusicSheetService,
     ) {}
 
-    async getExerciseObj(json, start, nbMeasure, musicSheetId){
-        const exercise: any = [];
-        const param:any = {
-            nbMeasure,
-            clef: [],
-        };
-        const missingNotePool = [];
-        json.Part[0].Staff.map((staff, idStaff) => {
-            if (staff.defaultEvent){
-                param.clef[idStaff] =  staff.defaultEvent[0];
-            } else {
-                param.clef[idStaff] = 'G';
-            }
-        });
-        if (json.Style[0].keySigNaturals){
-            param.keySig = [{accidental: json.Style[0].keySigNaturals}];
-        }
-        json.Staff.forEach((staff, idStaff) => {
-            exercise[idStaff] = [];
-            staff.Measure.forEach((measure, idMeasure) => {
-                if (idMeasure >= start && idMeasure < start + nbMeasure) {
-                    exercise[idStaff][idMeasure - start] = [];
-                }
-                measure.voice.forEach((voice, idVoice) => {
-                    if (voice.KeySig){
-                        param.keySig = voice.KeySig[0].accidental;
-                    }
-                    if (voice.TimeSig) {
-                        param.timeSig = { sigN: voice.TimeSig[0].sigN, sigD: voice.TimeSig[0].sigD};
-                    }
-                    if (idMeasure >= start && idMeasure < start + nbMeasure) {
-                        exercise[idStaff][idMeasure - start][idVoice] = voice.Event;
-                        voice.Event.forEach((event, idEvent) => {
-                            if (event.Note && event.Note.length === 1){
-                                const exerciseIdMeasure = idMeasure - start;
-                                missingNotePool.push({idStaff, idMeasure : exerciseIdMeasure, idVoice, idEvent});
-                            }
-                        });
-                    }
-                    if (idMeasure >= start){
-                        return; 
-                    }
-                    voice.Event.map((event) =>{
-                        if (event.concertEventType) {
-                            param.clef[idStaff] = event.concertEventType;
-                        }
-                    });
-                });
-            });
-        })
-        const midi = buildMidi({exercise, param})
-        const missingNoteId = Math.floor(Math.random() * (missingNotePool.length));
-        const missingNoteParams = {
-            idStaff: missingNotePool[missingNoteId].idStaff,
-            idMeasure: missingNotePool[missingNoteId].idMeasure,
-            idVoice: missingNotePool[missingNoteId].idVoice,
-            idEvent: missingNotePool[missingNoteId].idEvent}
-        const missingNote = exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
-        delete exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
-        exercise[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
-        console.log(await this.musicSheetService.get(musicSheetId));
-        const insertExercise = await this.exerciseRepository.save({
-            musicSheet: await this.musicSheetService.get(musicSheetId),
-            barStart: start,
-            barEnd: start + nbMeasure,
-            answer: missingNote[0].pitch[0],
-        })
-        if (midi === null){
-            return ({exercise: undefined, param: undefined, midi: undefined, id: undefined})
-        }
-        return ({exercise, param, midi, id: insertExercise.id});
-    }
     
-    async createRandom(nbMeasure: number) {
+    public async createRandom(nbMeasure: number) {
         const musicSheet: MusicSheetXml = await this.musicSheetService.getRandom()
         console.log('ID =', musicSheet.id);
         const xml = musicSheet.xml.replace(/Chord|Rest|Clef/g, 'Event');
@@ -105,7 +33,7 @@ export class ExerciseService {
         return (await this.getExerciseObj(json.museScore.Score[0], start, nbMeasure, musicSheet.id));
     }
 
-    async create(id:number, start:number, nbMeasure:number){
+    public async create(id:number, start:number, nbMeasure:number){
         try {
             const musicSheet: MusicSheetXml = await this.musicSheetService.getXml(id);
             const xml = musicSheet.xml.replace(/Chord|Rest|Clef/g, 'Event');
@@ -120,8 +48,92 @@ export class ExerciseService {
         }
     }
 
-    async getAnswer(id) {
+    public async getAnswer(id) {
         return (await this.exerciseRepository.findOne(id));
     }
     
+    //TODO: rename this function
+    private createMusicSheetAndNotePool(nbMeasure, json, start) {
+        const musicSheet: any = [];
+        const param:any = {
+            nbMeasure,
+            clef: [],
+        };
+        const notePool = [];
+        json.Part[0].Staff.map((staff, idStaff) => {
+            if (staff.defaultEvent){
+                param.clef[idStaff] =  staff.defaultEvent[0];
+            } else {
+                param.clef[idStaff] = 'G';
+            }
+        });
+        if (json.Style[0].keySigNaturals){
+            param.keySig = [{accidental: json.Style[0].keySigNaturals}];
+        }
+        json.Staff.forEach((staff, idStaff) => {
+            musicSheet[idStaff] = [];
+            staff.Measure.forEach((measure, idMeasure) => {
+                if (idMeasure >= start && idMeasure < start + nbMeasure) {
+                    musicSheet[idStaff][idMeasure - start] = [];
+                }
+                measure.voice.forEach((voice, idVoice) => {
+                    if (voice.KeySig){
+                        param.keySig = voice.KeySig[0].accidental;
+                    }
+                    if (voice.TimeSig) {
+                        param.timeSig = { sigN: voice.TimeSig[0].sigN, sigD: voice.TimeSig[0].sigD};
+                    }
+                    if (idMeasure >= start && idMeasure < start + nbMeasure) {
+                        musicSheet[idStaff][idMeasure - start][idVoice] = voice.Event;
+                        voice.Event.forEach((event, idEvent) => {
+                            if (event.Note && event.Note.length === 1){
+                                const exerciseIdMeasure = idMeasure - start;
+                                notePool.push({idStaff, idMeasure : exerciseIdMeasure, idVoice, idEvent});
+                            }
+                        });
+                    }
+                    if (idMeasure >= start){
+                        return; 
+                    }
+                    voice.Event.map((event) =>{
+                        if (event.concertEventType) {
+                            param.clef[idStaff] = event.concertEventType;
+                        }
+                    });
+                });
+            });
+        })
+        return { 'musicSheet': musicSheet, 'param': param, 'notePool': notePool};
+    }
+
+    private buildExercise(musicSheet, notePool){
+        const missingNoteId = Math.floor(Math.random() * (notePool.length));
+        const missingNoteParams = {
+            idStaff: notePool[missingNoteId].idStaff,
+            idMeasure: notePool[missingNoteId].idMeasure,
+            idVoice: notePool[missingNoteId].idVoice,
+            idEvent: notePool[missingNoteId].idEvent}
+        const missingNote = musicSheet[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
+        delete musicSheet[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].Note;
+        musicSheet[missingNoteParams.idStaff][missingNoteParams.idMeasure][missingNoteParams.idVoice][missingNoteParams.idEvent].secret = true;
+        return {'question': musicSheet, 'answer': missingNote};
+    }
+    
+    private async getExerciseObj(json, start, nbMeasure, musicSheetId) {
+        const {musicSheet, param, notePool} = this.createMusicSheetAndNotePool(nbMeasure, json, start);
+        //Midi
+        const midi = buildMidi({musicSheet, param})
+        //Missing Note
+        const { question, answer } = this.buildExercise(musicSheet, notePool);
+        const insertExercise = await this.exerciseRepository.save({
+            musicSheet: await this.musicSheetService.get(musicSheetId),
+            barStart: start,
+            barEnd: start + nbMeasure,
+            answer: answer[0].pitch[0],
+        })
+        if (midi === null){
+            return ({exercise: undefined, param: undefined, midi: undefined, id: undefined})
+        }
+        return ({exercise: question, param, midi, id: insertExercise.id});
+    }
 }

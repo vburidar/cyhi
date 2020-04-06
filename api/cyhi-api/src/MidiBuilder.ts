@@ -1,8 +1,9 @@
 import { Midi } from '@tonejs/midi'
 
 function getNbTracks(data: any) : number {
+    console.log('in getNbTracks', data, data.musicSheet, data.musicSheet);
     let nbTracks = 0;
-    data.exercise.forEach((Staff: any) => {
+    data.musicSheet.forEach((Staff: any) => {
         Staff[0].forEach(() => {
             nbTracks++;
         });
@@ -13,7 +14,7 @@ function getNbTracks(data: any) : number {
 function getFromIdTracks(idTracks: number, data:any){
     let nbTracks: number = 0;
     let ret: any = {};
-    data.exercise.forEach((Staff: any, idStaff: number) => {
+    data.musicSheet.forEach((Staff: any, idStaff: number) => {
         Staff[0].forEach((voice: any, idVoice: number) => {
             if (idTracks === nbTracks){
                 ret = {idStaff, idVoice};
@@ -148,7 +149,7 @@ export default function buildMidi(data: any) {
         track += '00ff5902' + '0000'; //key signature
         track += '00ff5103' + '0b71b2'; //tempo
         let firstEvent = true;
-        let event = data.exercise[idStaff][0][idVoice][0];
+        let event = data.musicSheet[idStaff][0][idVoice][0];
         while (event) {
             if (event.appoggiatura || event.acciaccatura){
             }
@@ -178,11 +179,11 @@ export default function buildMidi(data: any) {
                 }
             }
             idEvent += 1;
-            event = data.exercise[idStaff][idMeasure][idVoice][idEvent];
-            if (!event && data.exercise[idStaff][idMeasure + 1]){
+            event = data.musicSheet[idStaff][idMeasure][idVoice][idEvent];
+            if (!event && data.musicSheet[idStaff][idMeasure + 1]){
                 idMeasure += 1;
                 idEvent = 0;
-                event = data.exercise[idStaff][idMeasure][idVoice][idEvent];
+                event = data.musicSheet[idStaff][idMeasure][idVoice][idEvent];
             }
         }
         track+= 'ff2f00';
